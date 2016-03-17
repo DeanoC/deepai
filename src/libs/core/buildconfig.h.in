@@ -1,0 +1,3 @@
+#pragma once
+
+#cmakedefine DEEPAI 1

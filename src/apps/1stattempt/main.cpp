@@ -99,6 +99,9 @@ int main(int argc, char **argv)
         }
     }
 
+    // for unsupervised learning (like k-means) ignore output
+    model->ignoreUsageType(DataTypeUsage::Output);
+
     AICore::FeatureVector<float> fv(model->sizeOfFeatures(), model->dimensionOfFeatures());
     model->fill(fv);
 

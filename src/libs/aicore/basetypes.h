@@ -21,7 +21,9 @@ namespace AICore {
     enum DataTypeUsage : uint8_t {
         Input,
         Output,
-        Generic
+        Generic,
+
+        COUNT
     };
 
     enum DataTypeNormalisation : uint8_t {

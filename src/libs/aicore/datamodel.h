@@ -35,10 +35,14 @@ namespace AICore {
 
         FeatureContainer &getFeatures() { return features; }
 
+        void ignoreUsageType(DataTypeUsage usage) { ignoreArray[(int) usage] = 1; }
+
         void fill(FeatureVectorBase &base);
 
     protected:
         FeatureContainer features;
+
+        std::array<uint8_t, DataTypeUsage::COUNT> ignoreArray;
 
         void extractDataTypeProperties(const rapidjson::GenericValue<rapidjson::UTF8<>> &layout,
                                        DataTypeInfo::shared_ptr &dataPtr) const;

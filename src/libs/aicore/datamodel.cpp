@@ -20,6 +20,9 @@ namespace AICore {
         using namespace Core;
         using namespace rapidjson;
 
+        // by default no feature is ignored
+        std::fill(ignoreArray.begin(), ignoreArray.end(), 0);
+
         rapidjson::Document doc;
 //		std::cout << "Starting Parse of " << dataJSON << "\n";
 
@@ -113,6 +116,7 @@ namespace AICore {
             } else {
                 throw;
             }
+            dataPtr->setUsage(usage);
         }
 
         if (layout.HasMember("categories")) {
@@ -133,6 +137,8 @@ namespace AICore {
     size_t DataModel::dimensionOfFeatures() const {
         size_t numDims = 0;
         for (auto &&fv : features) {
+            if (ignoreArray[(int) fv->usage] > 0) continue;
+
             if (fv->normalisationMethod == DataTypeNormalisation::oneOfN) {
                 numDims += fv->numCategories();
             } else if (fv->normalisationMethod == DataTypeNormalisation::equilateral) {
@@ -153,6 +159,8 @@ namespace AICore {
         // base is already sized to size * dim
         size_t currentIndex = 0;
         for (auto &&fv : features) {
+            if (ignoreArray[(int) fv->usage] > 0) continue;
+
             switch (fv->category) {
                 case DataCategory::Qualitive: {
                     auto q = std::static_pointer_cast<const DataTypeBase<DataCategory::Qualitive>>(fv);

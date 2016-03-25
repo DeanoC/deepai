@@ -1,20 +1,17 @@
 #pragma once
 
-namespace AICore {
+#include <cstdint>
+#include <memory>
+#include <cassert>
+#include <array>
+#include <core/vectoralu.h>
 
-    enum FeatureVectorType : uint8_t {
-        Generic = 0,
-        InputLayer,
-        OutputLayer,
-        HiddenLayer
-    };
+namespace AICore {
 
     struct FeatureVectorBase {
         using shared_ptr = std::shared_ptr<FeatureVectorBase>;
 
-        FeatureVectorBase(FeatureVectorType _type) : type(_type) { }
-
-        const FeatureVectorType type;
+        FeatureVectorBase() { }
 
         virtual ~FeatureVectorBase() { };
 
@@ -22,69 +19,40 @@ namespace AICore {
 
     };
 
-    template<typename REAL = float, typename ALU = Core::VectorALU <Core::VectorALUBackend::BASIC_CPP>>
+    template<typename REAL = float, unsigned int DIM = 1, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>>
     class FeatureVector : public FeatureVectorBase {
     public:
         using StateVectorType = typename ALU::template VectorOf<REAL>;
-        using WeightVectorType = typename ALU::template VectorOf<REAL>;
 
-        using shared_ptr = std::shared_ptr<FeatureVector<REAL, ALU>>;
+        using shared_ptr = std::shared_ptr<FeatureVector<REAL, DIM, ALU>>;
 
-        FeatureVector(const unsigned int _count) :
-                FeatureVectorBase(FeatureVectorType::Generic),
-                weights(_count),
-                states(_count) { }
-
-        FeatureVector(const WeightVectorType &_wht) :
-                FeatureVectorBase(FeatureVectorType::Generic),
-                weights(_wht),
-                states(_wht.size()) { }
-
-        FeatureVector(const WeightVectorType &_wht, const StateVectorType &_state) :
-                FeatureVectorBase(FeatureVectorType::Generic),
-                weights(_wht),
-                states(_state) { }
+        FeatureVector(const unsigned int _count[DIM]) {
+            for (auto &&item : states) {
+                item.resize(_count);
+            }
+        }
 
         std::shared_ptr <FeatureVectorBase> clone() const override {
-            shared_ptr other = std::make_shared<FeatureVector<REAL, ALU>>(weights, states);
-            assert(other->Type() == FeatureVectorType::Generic);
+            shared_ptr other = std::make_shared<FeatureVector<REAL, DIM, ALU>>(states);
             return std::static_pointer_cast<FeatureVectorBase>(other);
         }
 
         virtual ~FeatureVector() { };
 
-        FeatureVectorType Type() const { return type; }
 
-        void setWeights(const WeightVectorType &in) {
-            weights = in;
+        const StateVectorType &getStates(const unsigned int dim) const {
+            return states[dim];
         }
 
-        const WeightVectorType &getWeights() const { return weights; }
-
-        const StateVectorType &getStates() const { return states; }
-
-        bool operator==(const FeatureVector<REAL, ALU> &b) {
-            if (Type() != b.Type()) return false;
-            if (getWeights() != b.getWeights()) return false;
-            if (getStates() != b.getStates()) return false;
-
-            return true;
+        bool operator==(const FeatureVector<REAL, DIM, ALU> &b) {
+            return (states == b.states);
         }
 
-        bool operator!=(const FeatureVector<REAL, ALU> &b) {
+        bool operator!=(const FeatureVector<REAL, DIM, ALU> &b) {
             return !operator==(b);
         }
 
-
     protected:
-        // sub classes use this to set the type before filling the data
-        FeatureVector(const FeatureVectorType _type) : FeatureVectorBase(_type) { }
-
-        WeightVectorType weights;
-        StateVectorType states;
+        std::array<StateVectorType, DIM> states;
     };
-//	template< typename REAL float>
-//	class WeightedFeatureVector {
-//
-//	};
 }

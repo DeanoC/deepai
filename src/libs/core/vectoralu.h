@@ -18,38 +18,38 @@ namespace Core {
 
 
         template<typename type>
-        void add(const type &a, const type &b, type &out);
+        void add(const type &a, const type &b, type &out) { };
 
         template<typename type>
-        void sub(const type &a, const type &b, type &out);
+        void sub(const type &a, const type &b, type &out) { };
 
         template<typename type>
-        void mul(const type &a, const type &b, type &out);
+        void mul(const type &a, const type &b, type &out) { };
 
         template<typename type>
-        void div(const type &a, const type &b, type &out);
+        void div(const type &a, const type &b, type &out) { };
 
         template<typename type>
-        ResultPair<type> minMaxOf(const type &input);
+        ResultPair<type> minMaxOf(const type &input) { };
 
         template<typename type>
-        bool compareEquals(const type &a, const type &b);
+        bool compareEquals(const type &a, const type &b) { };
 
         template<typename type>
-        bool compareNotEquals(const type &a, const type &b);
+        bool compareNotEquals(const type &a, const type &b) { };
 
         template<typename type>
-        bool compareAllGreater(const type &a, const type &b);
+        bool compareAllGreater(const type &a, const type &b) { };
 
         template<typename type>
-        bool compareAllLess(const type &a, const type &b);
+        bool compareAllLess(const type &a, const type &b) { };
 
 
         template<typename type>
-        void normaliseData0to1(const type &in, type &out);
+        void normaliseData0to1(const type &in, type &out) { };
 
         template<typename type>
-        void normaliseDataNeg1toPos1(const type &in, type &out);
+        void normaliseDataNeg1toPos1(const type &in, type &out) { };
 
 //		static bool init();
 //		static VectorALU<backend> get();

@@ -35,12 +35,11 @@ namespace AICore {
             const auto &datalayout = doc["datalayout"];
             if (!datalayout.IsArray()) throw;
 
-            // reset data
-            data.clear();
+            // reset features
+            features.clear();
 
             for (Value::ConstValueIterator itr = datalayout.Begin(); itr != datalayout.End(); ++itr) {
 
-                // datalayout always have N weights, other optional data specialize them
                 const auto &layout = *itr;
 
                 // require a represents field so we can know what/how to use if
@@ -53,46 +52,74 @@ namespace AICore {
                 if (rep == std::string("nominal")) {
                     std::shared_ptr<NominalData<>> topPtr = std::make_shared<NominalData<>>(alu);
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("interval")) {
                     std::shared_ptr<IntervalData<>> topPtr = std::make_shared<IntervalData<>>(alu);
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("ordinal")) {
                     std::shared_ptr<OrdinalData<>> topPtr = std::make_shared<OrdinalData<>>(alu);
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("ratio")) {
                     std::shared_ptr<RatioData<>> topPtr = std::make_shared<RatioData<>>(alu);
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    extractDataTypeProperties(layout, dataPtr);
                 }
 
-                if (layout.HasMember("categories")) {
-                    const auto &categories = layout["categories"];
-                    if (!categories.IsArray()) throw;
-
-                    for (Value::ConstValueIterator itr = categories.Begin();
-                         itr != categories.End();
-                         ++itr) {
-                        dataPtr->addData(itr->GetString());
-                    }
-                } else {
-                    // qualative data must have them for normalisation
-                    if (dataPtr->category == DataCategory::Qualitive) throw;
-                }
-
-                if (!layout.HasMember("type")) {
-                    const auto &jsonType = layout["type"];
-                    std::string typeString = jsonType.GetString();
-                    boost::algorithm::to_lower(typeString);
-                    if (typeString == std::string("Generic")) {
-//						fvType = FeatureVectorType::Generic;
-                    } else if (typeString == std::string("Input")) {
-//						fvType = FeatureVectorType::InputLayer;
-                    } else if (typeString == std::string("Output")) {
-//						fvType = FeatureVectorType::OutputLayer;
-                    }
-                }
-
-                addDataType(dataPtr);
+                AddFeature(dataPtr);
             }
+        }
+    }
+
+    void DataModel::extractDataTypeProperties(const rapidjson::GenericValue<rapidjson::UTF8<>> &layout,
+                                              DataTypeInfo::shared_ptr &dataPtr) const {
+        using namespace Core;
+        using namespace rapidjson;
+
+        double low = 1.0;
+        double high = 1.0;
+        if (layout.HasMember("range")) {
+            const auto &range = layout["range"];
+            if (!range.IsArray()) throw;
+            if (range.Size() != 2) throw;
+
+            low = range[0].GetDouble();
+            high = range[1].GetDouble();
+
+        }
+        dataPtr->setRange(low, high);
+
+        if (!layout.HasMember("type")) {
+            const auto &jsonType = layout["type"];
+            std::string typeString = jsonType.GetString();
+            boost::algorithm::to_lower(typeString);
+
+            DataTypeUsage usage = DataTypeUsage::Generic;
+
+            if (typeString == std::string("generic")) {
+                usage = DataTypeUsage::Generic;
+            } else if (typeString == std::string("input")) {
+                usage = DataTypeUsage::Input;
+            } else if (typeString == std::string("output")) {
+                usage = DataTypeUsage::Output;
+            } else {
+                throw;
+            }
+        }
+
+        if (layout.HasMember("categories")) {
+            const auto &categories = layout["categories"];
+            if (!categories.IsArray()) throw;
+
+            for (Value::ConstValueIterator itr = categories.Begin();
+                 itr != categories.End();
+                 ++itr) {
+                dataPtr->addData(itr->GetString());
+            }
+        } else {
+            // qualative features must have them for normalisation
+            if (dataPtr->category == DataCategory::Qualitive) throw;
         }
     }
 

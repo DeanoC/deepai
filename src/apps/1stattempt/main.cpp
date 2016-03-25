@@ -8,12 +8,13 @@
 #include "aicore/basetypes.h"
 #include "aicore/datamodel.h"
 
+#include "readcvs.h"
+
 int main(int argc, char **argv)
 {
 
     using namespace AICore;
     using namespace Core;
-    using namespace std;
 
     namespace fs = boost::filesystem;
     namespace po = boost::program_options;
@@ -35,7 +36,7 @@ int main(int argc, char **argv)
     const fs::path iris_model(boost::filesystem::current_path().append(
             "iris_datamodel.json"));
     const fs::path iris_data(boost::filesystem::current_path().append(
-            "iris.cvs"));
+            "iris.csv"));
 
     try {
 
@@ -53,37 +54,50 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    const auto fileProps = std::ios::in | std::ios::binary | std::ios::ate;
+
     size_t fileSize;
-    ifstream modelifs(iris_model.filename().c_str(), ios::in | ios::binary | ios::ate);
-    fileSize = modelifs.tellg();
-    modelifs.seekg(0, ios::beg);
-    vector<char> bytes(fileSize);
+    std::ifstream modelifs(iris_model.filename().c_str(), fileProps);
+    fileSize = (size_t) modelifs.tellg();
+    modelifs.seekg(0, std::ios::beg);
+    std::vector<char> bytes(fileSize);
     modelifs.read(&bytes[0], fileSize);
 
-    DataModel::shared_ptr mode = std::make_shared<DataModel>(string(&bytes[0], fileSize));
+    // datamodel describes the data, and the initial data but not the working data
+    DataModel::shared_ptr model = std::make_shared<DataModel>(std::string(&bytes[0], fileSize));
 
-/*	DataSet input;
+    // now we need to create a working data set ready to pump data through it
+    // each DataType in the model counts as a feature set dimension
+    // each DataType will require a normaliser to encode it and vice versa
+    // afterwards.
 
-	VectorOfFloats f;
-	ArrayOfColours c;
+    std::ifstream dataifs(iris_data.filename().c_str(), fileProps);
+    if (dataifs.bad()) {
+        std::cerr << "Error opening " << iris_data << "\n";
+        return 1;
+    }
 
-	auto irange = boost::irange(0,5);
-	f.resize( irange.size() );
-	c.resize( irange.size() );
-	for( auto i : irange )
-	{
-		f[i] = i;
-		c[i] = Colour_fromInt(i);
-	}
-	input.setA( f );
-	input.setB( c );
+    fileSize = (size_t) dataifs.tellg();
+    dataifs.seekg(0, std::ios::beg);
 
-	ResultData< NominalData<ArrayOfColours>,Core::VectorProcessingBackend<Core::VectorALU::BASIC_CPP,ArrayOfColours>  > results( DefaultVectorALU<ArrayOfColours>() );	
-	results.allocateSpaceFor( 10 );
-	for(auto i = 0; i < input.size(); ++i ) {
-		results.generateIdealResult(i);
-	}
-	*/
+    const auto csv = Util::readCSV(dataifs);
+    // check number of features matching number of columns in CVS
+    assert(csv.size() > 0);
+    assert(csv[0].size() == model->dimensionOfFeatures());
+
+    auto &features = model->getFeatures();
+
+    for (auto row = csv.begin(); row != csv.end(); ++row) {
+
+        // skip invalid rows;
+        if (row->size() != model->dimensionOfFeatures()) continue;
+
+        int i = 0;
+        for (auto &&val : *row) {
+            features[i]->addData(val);
+            ++i;
+        }
+    }
 
 
 	return 0;	

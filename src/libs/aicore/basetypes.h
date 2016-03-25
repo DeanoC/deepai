@@ -4,25 +4,33 @@
 #include "aicore/aicore.h"
 
 namespace AICore {
-	
 
-	enum DataCategory{
+
+    enum DataCategory : uint8_t {
 		Qualitive,	// categorical data
 		Quantative, // numerical data
 	};
 
-	enum DataType{
+    enum DataType : uint8_t {
 		Nominal,
 		Ordinal,
 		Interval,
 		Ratio,
 	};
 
+    enum DataTypeUsage : uint8_t {
+        Input,
+        Output,
+        Generic
+    };
+
     struct DataTypeInfo {
         DataTypeInfo(DataType _type) :
                 type(_type),
                 category((_type == DataType::Nominal || _type == DataType::Ordinal) ?
-                         DataCategory::Qualitive : DataCategory::Quantative) { }
+                         DataCategory::Qualitive : DataCategory::Quantative),
+                usage(DataTypeUsage::Generic),
+                index(0) { }
 
         using shared_ptr = std::shared_ptr<DataTypeInfo>;
 
@@ -30,23 +38,44 @@ namespace AICore {
 
         virtual void addData(const std::string &data) = 0;
 
+        virtual void setIndex(const uint8_t index) = 0;
+
+        virtual void setUsage(const DataTypeUsage usage) = 0;
+
+        virtual void setRange(const double &low, const double &far) = 0;
         virtual void setRange(const std::string &low, const std::string &far) = 0;
 
         const DataType type;
         const DataCategory category;
+        const DataTypeUsage usage;
+        const uint8_t index;
     };
 
 	template<typename T, typename ALU>
     struct DataTypeBase : public DataTypeInfo {
 
-        explicit DataTypeBase(const DataType _type, ALU &_alu) :
-                DataTypeInfo(_type), processor(_alu) { }
+        virtual void setIndex(const uint8_t _index) override {
+            auto &writeIndex = const_cast<uint8_t &>(index);
+            writeIndex = _index;
+        }
 
-        typedef DataTypeInfo super;
+        void setUsage(const DataTypeUsage _usage) override {
+            auto &writeUsage = const_cast<DataTypeUsage &>(usage);
+            writeUsage = _usage;
+        }
 
         void setRange(const std::string &low, const std::string &far) override {
             range = range_type(boost::lexical_cast<T>(low), boost::lexical_cast<T>(far));
         }
+
+        void setRange(const double &low, const double &far) override {
+            range = range_type(static_cast<T>(low), static_cast<T>(far));
+        }
+
+        explicit DataTypeBase(const DataType _type, ALU &_alu) :
+                DataTypeInfo(_type), processor(_alu) { }
+
+        typedef DataTypeInfo super;
 
         using super::type;
         using super::category;

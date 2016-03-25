@@ -8,6 +8,8 @@
 
 namespace AICore {
 
+    struct FeatureVectorBase;
+
     class DataModel {
     public:
         using DataType = DataTypeInfo;
@@ -23,11 +25,17 @@ namespace AICore {
             features.push_back(da);
         }
 
-        size_t dimensionOfFeatures() const { return features.size(); }
+        size_t actualDimensionOfFeatures() const { return features.size(); }
+
+        size_t dimensionOfFeatures() const;
+
+        size_t sizeOfFeatures() const { return features[0]->size(); }
 
         typename DataType::shared_ptr getFeature(size_t i) { return features[i]; }
 
         FeatureContainer &getFeatures() { return features; }
+
+        void fill(FeatureVectorBase &base);
 
     protected:
         FeatureContainer features;

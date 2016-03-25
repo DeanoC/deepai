@@ -7,15 +7,18 @@
 #include "rapidjson/document.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
+#include <set>
+#include <unordered_map>
+#include <map>
+#include "aicore/featurevector.h"
 #include "aicore/datamodel.h"
+
 
 namespace AICore {
 
     DataModel::DataModel(const std::string &dataJSON) {
         using namespace Core;
         using namespace rapidjson;
-
-        auto &alu = VectorALU<VectorALUBackend::BASIC_CPP>::get();
 
         rapidjson::Document doc;
 //		std::cout << "Starting Parse of " << dataJSON << "\n";
@@ -50,20 +53,24 @@ namespace AICore {
                 DataType::shared_ptr dataPtr;
 
                 if (rep == std::string("nominal")) {
-                    std::shared_ptr<NominalData<>> topPtr = std::make_shared<NominalData<>>(alu);
+                    auto topPtr = std::make_shared<NominalData>();
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    topPtr->setNormalisationMethod(DataTypeNormalisation::oneOfN);
                     extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("interval")) {
-                    std::shared_ptr<IntervalData<>> topPtr = std::make_shared<IntervalData<>>(alu);
+                    auto topPtr = std::make_shared<IntervalData>();
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    topPtr->setNormalisationMethod(DataTypeNormalisation::oneOfN);
                     extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("ordinal")) {
-                    std::shared_ptr<OrdinalData<>> topPtr = std::make_shared<OrdinalData<>>(alu);
+                    auto topPtr = std::make_shared<OrdinalData>();
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    topPtr->setNormalisationMethod(DataTypeNormalisation::scalingNeg1ToPos1);
                     extractDataTypeProperties(layout, dataPtr);
                 } else if (rep == std::string("ratio")) {
-                    std::shared_ptr<RatioData<>> topPtr = std::make_shared<RatioData<>>(alu);
+                    auto topPtr = std::make_shared<RatioData>();
                     dataPtr = std::static_pointer_cast<DataType>(topPtr);
+                    topPtr->setNormalisationMethod(DataTypeNormalisation::scalingNeg1ToPos1);
                     extractDataTypeProperties(layout, dataPtr);
                 }
 
@@ -90,7 +97,7 @@ namespace AICore {
         }
         dataPtr->setRange(low, high);
 
-        if (!layout.HasMember("type")) {
+        if (layout.HasMember("type")) {
             const auto &jsonType = layout["type"];
             std::string typeString = jsonType.GetString();
             boost::algorithm::to_lower(typeString);
@@ -115,7 +122,7 @@ namespace AICore {
             for (Value::ConstValueIterator itr = categories.Begin();
                  itr != categories.End();
                  ++itr) {
-                dataPtr->addData(itr->GetString());
+                dataPtr->addCategory(itr->GetString());
             }
         } else {
             // qualative features must have them for normalisation
@@ -123,4 +130,77 @@ namespace AICore {
         }
     }
 
+    size_t DataModel::dimensionOfFeatures() const {
+        size_t numDims = 0;
+        for (auto &&fv : features) {
+            if (fv->normalisationMethod == DataTypeNormalisation::oneOfN) {
+                numDims += fv->numCategories();
+            } else if (fv->normalisationMethod == DataTypeNormalisation::equilateral) {
+                numDims += fv->numCategories() - 1;
+            } else {
+                numDims += 1;
+            }
+        }
+
+        return numDims;
+    }
+
+
+    void DataModel::fill(FeatureVectorBase &base) {
+        using namespace Core;
+        using namespace AICore;
+
+        // base is already sized to size * dim
+        size_t currentIndex = 0;
+        for (auto &&fv : features) {
+            switch (fv->category) {
+                case DataCategory::Qualitive: {
+                    auto q = std::static_pointer_cast<const DataTypeBase<DataCategory::Qualitive>>(fv);
+
+                    switch (fv->normalisationMethod) {
+                        case DataTypeNormalisation::oneOfN: {
+                            // whole vector per enum value
+                            for (int i = 0; i < fv->numCategories(); ++i) {
+                                for (auto &&item : q->data) {
+                                    if (item == q->categories[i]) {
+                                        base.setAt(currentIndex++, 1.0);
+                                    } else {
+                                        base.setAt(currentIndex++, -1.0);
+                                    }
+                                }
+
+                            }
+                        }
+                            break;
+                        default: // TODO other normalisation
+                            assert(false);
+                    }
+                }
+                    break;
+                case DataCategory::Quantative: {
+                    auto q = std::static_pointer_cast<const DataTypeBase<DataCategory::Quantative>>(fv);
+
+                    const double rangeLow = fv->range.first;
+                    const double rangeWidth = fv->range.second - fv->range.first;
+                    switch (fv->normalisationMethod) {
+                        case DataTypeNormalisation::scaling0to1: {
+                            for (auto &&item : q->data) {
+                                base.setAt(currentIndex++, (item - rangeLow) / rangeWidth);
+                            }
+                        }
+                            break;
+                        case DataTypeNormalisation::scalingNeg1ToPos1: {
+                            for (auto &&item : q->data) {
+                                base.setAt(currentIndex++, ((item - rangeLow) / rangeWidth) * 2.0 - 1.0);
+                            }
+                        }
+                            break;
+                        default:
+                            assert(false);
+                    }
+                }
+                    break;
+            }
+        }
+    }
 }

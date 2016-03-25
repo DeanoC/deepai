@@ -5,6 +5,7 @@
 #include <cassert>
 #include <array>
 #include <core/vectoralu.h>
+#include "basetypes.h"
 
 namespace AICore {
 
@@ -12,47 +13,60 @@ namespace AICore {
         using shared_ptr = std::shared_ptr<FeatureVectorBase>;
 
         FeatureVectorBase() { }
-
         virtual ~FeatureVectorBase() { };
 
-        virtual std::shared_ptr <FeatureVectorBase> clone() const = 0;
+        virtual size_t size() = 0;
+
+        virtual void reserve(const size_t size) = 0;
+
+        virtual void push_back(const double value) = 0;
+
+        virtual void setAt(const size_t index, const double value) = 0;
 
     };
 
-    template<typename REAL = float, unsigned int DIM = 1, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>>
+    template<typename REAL = float, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>>
     class FeatureVector : public FeatureVectorBase {
     public:
-        using StateVectorType = typename ALU::template VectorOf<REAL>;
+        using Vector = typename ALU::template VectorOf<REAL>;
+        using shared_ptr = std::shared_ptr<FeatureVector<REAL, ALU>>;
 
-        using shared_ptr = std::shared_ptr<FeatureVector<REAL, DIM, ALU>>;
-
-        FeatureVector(const unsigned int _count[DIM]) {
-            for (auto &&item : states) {
-                item.resize(_count);
-            }
+        FeatureVector(const unsigned int _count, const unsigned int _dimensions) {
+            vector.resize(_count * _dimensions);
         }
 
-        std::shared_ptr <FeatureVectorBase> clone() const override {
-            shared_ptr other = std::make_shared<FeatureVector<REAL, DIM, ALU>>(states);
-            return std::static_pointer_cast<FeatureVectorBase>(other);
+        virtual ~FeatureVector() override { };
+
+        const Vector &get() const {
+            return vector;
         }
 
-        virtual ~FeatureVector() { };
-
-
-        const StateVectorType &getStates(const unsigned int dim) const {
-            return states[dim];
+        virtual size_t size() override {
+            return vector.size();
         }
 
-        bool operator==(const FeatureVector<REAL, DIM, ALU> &b) {
-            return (states == b.states);
+        virtual void reserve(const size_t size) override {
+            vector.reserve(size);
         }
 
-        bool operator!=(const FeatureVector<REAL, DIM, ALU> &b) {
+        virtual void push_back(const double value) override {
+            vector.push_back(static_cast<REAL>(value));
+        }
+
+        virtual void setAt(const size_t index, const double value) override {
+            vector.at(index) = static_cast<REAL>(value);
+        }
+
+
+        bool operator==(const FeatureVector<REAL, ALU> &b) {
+            return (vector == b.vector);
+        }
+
+        bool operator!=(const FeatureVector<REAL, ALU> &b) {
             return !operator==(b);
         }
 
     protected:
-        std::array<StateVectorType, DIM> states;
+        Vector vector;
     };
 }

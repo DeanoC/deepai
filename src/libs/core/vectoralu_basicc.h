@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include "core/core.h"
 #include "core/vectoralu.h"
 
@@ -119,20 +120,6 @@ namespace Core {
 			}
 
             return ResultPair<type>(mini, maxi);
-		}
-
-        template<typename type>
-        void normaliseData0to1(const VectorOf<type> &in, VectorOf<type> &out) {
-			out.resize( in.size() );
-            ResultPair<type> minAndMax = minMaxOf(in);
-            type width = minAndMax.second - minAndMax.first;
-            assert(width > type(0));
-
-			auto& ot = out.begin();
-			for( auto it : in ) {
-				*ot = *it / width;
-				++ot;
-			}
 		}
 
     protected:

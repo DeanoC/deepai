@@ -83,14 +83,14 @@ int main(int argc, char **argv)
     const auto csv = Util::readCSV(dataifs);
     // check number of features matching number of columns in CVS
     assert(csv.size() > 0);
-    assert(csv[0].size() == model->dimensionOfFeatures());
+    assert(csv[0].size() == model->actualDimensionOfFeatures());
 
     auto &features = model->getFeatures();
 
     for (auto row = csv.begin(); row != csv.end(); ++row) {
 
         // skip invalid rows;
-        if (row->size() != model->dimensionOfFeatures()) continue;
+        if (row->size() != model->actualDimensionOfFeatures()) continue;
 
         int i = 0;
         for (auto &&val : *row) {

@@ -1,126 +1,68 @@
 #include "core/core.h"
 #include "aicore/aicore.h"
-#include <array>
-#include <vector>
-#include <cassert>
+#include <iostream>
 #include <boost/range/irange.hpp>
+#include <boost/filesystem.hpp>
+#include "boost/program_options.hpp"
 
 #include "aicore/basetypes.h"
+#include "aicore/datamodel.h"
 
-
-enum class Colours {
-	Red = 0,
-	Blue,
-	Green,
-	White,
-	Black,
-	Violet,
-
-	COUNT,
-};
-template< typename T>
-constexpr T Colour_lowest() { return T(0); }
-template< typename T>
-constexpr T Colour_highest() { return T(Colours::COUNT)-1; }
-template< typename T>
-constexpr Colours Colour_fromInt( T in ) { return (Colours)in; }
-
-// result == 0 AKA false if both templates are the same
-template< int A, int B>
-struct TemplateSubtract {
-	enum { result = A - B };
-};
-
-typedef std::vector<Colours> ArrayOfColours;
-
-template< typename T, typename ALU = Core::VectorProcessingBackend<Core::VectorALU::BASIC_CPP,T> , typename InternalResults = Core::VectorOfFloats, bool b = TemplateSubtract<T::DataCategory, AICore::DataCategory::Qualitive>::result >
-struct ResultData;
-
-
-template< typename T, typename ALU, typename InternalResults >
-struct ResultData<T, ALU, InternalResults, false>
+int main(int argc, char **argv)
 {
-	explicit ResultData(ALU& _alu) : results(_alu) {}
 
-	typedef typename InternalResults::value_type NumericType;
+    using namespace AICore;
+    using namespace Core;
+    using namespace std;
 
-	static const unsigned int NumChannelsPerElement = (unsigned int) T::value_type::COUNT;
+    namespace fs = boost::filesystem;
+    namespace po = boost::program_options;
 
-	void allocateSpaceFor( unsigned int elementCount ) {
-		results.data.resize( elementCount );
-		normalised.resize( NumChannelsPerElement * elementCount );
+    // Declare the supported options.
+    po::options_description desc("Allowed options");
+    desc.add_options()
+            ("help", "produce help message");
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << desc << "\n";
+        return 1;
 	}
 
-	void generateIdealResult( unsigned int index ) {
-		using namespace AICore;
-		if( T::DataType == Nominal ) {
-			// one of N normalization for nominal data
-			const auto chan = index % NumChannelsPerElement;
-			for(int i=0;i < NumChannelsPerElement;++i) {
-				normalised[ (index*NumChannelsPerElement)+i] = -1;
-			}
-			normalised[ (index * NumChannelsPerElement) + chan ] = 1;
-		} else {
-			// range normalization for Ordinal
-			NumericType percentage = static_cast<NumericType>(index) / Colour_highest<NumericType>();
-			NumericType width = Colour_highest<NumericType>() - Colour_lowest<NumericType>();
+    const fs::path iris_model(boost::filesystem::current_path().append(
+            "iris_datamodel.json"));
+    const fs::path iris_data(boost::filesystem::current_path().append(
+            "iris.cvs"));
 
-			normalised[ index ] = percentage * width + Colour_lowest<NumericType>();
-		}
-	}
-	T results;
-	InternalResults normalised;
-};
+    try {
 
-template< typename T, typename ALU, typename InternalResults >
-struct ResultData<T, ALU, InternalResults, true>
-{
-	explicit ResultData(ALU& _alu) : results(_alu) {}
+        if (!fs::exists(iris_model)) {
+            std::cerr << "Data descriptor (" << iris_model << ") not found\n";
+            return 1;
+        }
 
-	void allocateSpaceFor( unsigned int elementCount ) {
-		results.resize( elementCount );
-	}
-	void generateIdealResults( unsigned int index ) {
-	}
+        if (!fs::exists(iris_data)) {
+            std::cerr << "Data (" << iris_data << ") not found\n";
+            return 1;
+        }
+    } catch (fs::filesystem_error &err) {
+        std::cerr << err.what();
+        return 1;
+    }
 
-	T results;
-};
+    size_t fileSize;
+    ifstream modelifs(iris_model.filename().c_str(), ios::in | ios::binary | ios::ate);
+    fileSize = modelifs.tellg();
+    modelifs.seekg(0, ios::beg);
+    vector<char> bytes(fileSize);
+    modelifs.read(&bytes[0], fileSize);
 
+    DataModel::shared_ptr mode = std::make_shared<DataModel>(string(&bytes[0], fileSize));
 
-
-class DataSet {
-public:
-
-	DataSet() : a( Core::DefaultVectorALU<Core::VectorOfFloats>() ), b( Core::DefaultVectorALU<ArrayOfColours>() ) {}
-	size_t size() const { 
-		assert( validate() );
-		return a.data.size(); 
-	}
-
-	bool validate() const {
-		if( a.data.size() != b.data.size() ) return false;
-
-		return true;
-	}
-
-	void setA( const Core::VectorOfFloats& in ) {
-		a.data = in;
-	}
-
-	void setB( const ArrayOfColours& in ) {
-		b.data = in;
-	}
-
-protected:
-	AICore::RatioData<Core::VectorOfFloats> 	a;
-	AICore::NominalData<ArrayOfColours> b;
-};
-
-int main()
-{
-	using namespace AICore;
-	using namespace Core;
-	DataSet input;
+/*	DataSet input;
 
 	VectorOfFloats f;
 	ArrayOfColours c;
@@ -141,6 +83,7 @@ int main()
 	for(auto i = 0; i < input.size(); ++i ) {
 		results.generateIdealResult(i);
 	}
+	*/
 
 
 	return 0;	

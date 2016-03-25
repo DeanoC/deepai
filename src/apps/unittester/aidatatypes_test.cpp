@@ -1,7 +1,6 @@
 #include "core/core.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
-#include <boost/test/data/monomorphic.hpp>
 #include <boost/range/irange.hpp>
 
 #include "aicore/aicore.h"
@@ -9,6 +8,9 @@
 
 namespace utf = boost::unit_test;
 namespace bdata = utf::data;
+
+using ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>;
+
 // check compiler handles the way we do nominal data groups
 enum class Colours {
 	Red = 0,
@@ -46,7 +48,7 @@ constexpr Colours Colour_fromInt( T in ) {
 	return (Colours)in; 
 }
 
-typedef std::vector<Colours> ArrayOfColours;
+typedef ALU::VectorOf <Colours> VectorOfColours;
 
 BOOST_AUTO_TEST_CASE( test_Colours_enum )
 {
@@ -60,8 +62,9 @@ BOOST_AUTO_TEST_CASE( test_ArrayOf )
 {
 	using namespace AICore;
 	using namespace Core;
-	VectorOfFloats f;
-	ArrayOfColours c;
+
+    ALU::VectorOfFloats f;
+    VectorOfColours c;
 
 	auto irange = boost::irange(0,5);
 	BOOST_REQUIRE_EQUAL( irange.size(), 5 );
@@ -84,22 +87,25 @@ BOOST_AUTO_TEST_CASE( test_Nominal_datatype, * utf::tolerance(0.00001) )
 {
 	using namespace AICore;
 	using namespace Core;
-	
-   	typedef AICore::NominalData<VectorOfFloats> Y;
 
-	BOOST_REQUIRE_EQUAL( Y::DataCategory, AICore::DataCategory::Qualitive );
-	BOOST_REQUIRE_EQUAL( Y::DataType, AICore::DataType::Nominal );
-	BOOST_REQUIRE_NE( Y::DataCategory, AICore::DataCategory::Quantative );
+    ALU &alu = ALU::get();
 
-	Y a(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y b(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    typedef AICore::NominalData<> Y;
+
+    Y a(alu);
+    Y b(alu);
+
+    BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Qualitive);
+    BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Nominal);
+    BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Quantative);
+
 	BOOST_REQUIRE( a == a );
 	// with no data set, y and z are equal with null data
 	BOOST_REQUIRE( a == b );
 
-	Y::shared_ptr y = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr z = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr err = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr y = std::make_shared<Y>(alu);
+    Y::shared_ptr z = std::make_shared<Y>(alu);
+    Y::shared_ptr err = std::make_shared<Y>(alu);
 	auto irange = boost::irange(0,5);
 	y->data.resize( irange.size() );
 	z->data.resize( irange.size() );
@@ -117,8 +123,8 @@ BOOST_AUTO_TEST_CASE( test_Nominal_datatype, * utf::tolerance(0.00001) )
 	err->data.resize( 0 );
 	BOOST_TEST( *z != *err );
 
-	Y::shared_ptr aP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr bP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr aP = std::make_shared<Y>(alu);
+    Y::shared_ptr bP = std::make_shared<Y>(alu);
 	BOOST_TEST( operator!=( aP, bP ) );
 	BOOST_TEST( operator!=( aP, z ) );
 }
@@ -128,21 +134,24 @@ BOOST_AUTO_TEST_CASE( test_Ordinal_datatype, * utf::tolerance(0.00001) )
 	using namespace AICore;
 	using namespace Core;
 
-	typedef AICore::OrdinalData<VectorOfFloats> Y;
+    ALU &alu = ALU::get();
 
-	BOOST_REQUIRE_EQUAL( Y::DataCategory, AICore::DataCategory::Qualitive );
-	BOOST_REQUIRE_EQUAL( Y::DataType, AICore::DataType::Ordinal );
-	BOOST_REQUIRE_NE( Y::DataCategory, AICore::DataCategory::Quantative );
+    typedef AICore::OrdinalData<> Y;
 
-	Y a(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y b(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y a(alu);
+    Y b(alu);
+
+    BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Qualitive);
+    BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Ordinal);
+    BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Quantative);
+
 	BOOST_REQUIRE( a == a );
 	// with no data set, y and z are equal with null data
 	BOOST_REQUIRE( a == b );
 
-	Y::shared_ptr y = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr z = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr err = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr y = std::make_shared<Y>(alu);
+    Y::shared_ptr z = std::make_shared<Y>(alu);
+    Y::shared_ptr err = std::make_shared<Y>(alu);
 	auto irange = boost::irange(0,5);
 	y->data.resize( irange.size() );
 	z->data.resize( irange.size() );
@@ -161,8 +170,8 @@ BOOST_AUTO_TEST_CASE( test_Ordinal_datatype, * utf::tolerance(0.00001) )
 	BOOST_TEST( *err > *y );
 	BOOST_TEST( *y < *err );
 
-	Y::shared_ptr aP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr bP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr aP = std::make_shared<Y>(alu);
+    Y::shared_ptr bP = std::make_shared<Y>(alu);
 	BOOST_TEST( operator!=( aP, bP ) );
 	BOOST_TEST( operator!=( aP, z ) );
 }
@@ -171,22 +180,25 @@ BOOST_AUTO_TEST_CASE( test_Interval_datatype, * utf::tolerance(0.00001) )
 {
 	using namespace AICore;
 	using namespace Core;
-	
-   	typedef AICore::IntervalData<VectorOfFloats> Y;
 
-	BOOST_REQUIRE_EQUAL( Y::DataCategory, AICore::DataCategory::Quantative );
-	BOOST_REQUIRE_EQUAL( Y::DataType, AICore::DataType::Interval );
-	BOOST_REQUIRE_NE( Y::DataCategory, AICore::DataCategory::Qualitive );
+    ALU &alu = ALU::get();
 
-	Y a(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y b(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    typedef AICore::IntervalData<> Y;
+
+    Y a(alu);
+    Y b(alu);
+
+    BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Quantative);
+    BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Interval);
+    BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Qualitive);
+
 	BOOST_REQUIRE( a == a );
 	// with no data set, y and z are equal with null data
 	BOOST_REQUIRE( a == b );
 
-	Y::shared_ptr y = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr z = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr err = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr y = std::make_shared<Y>(alu);
+    Y::shared_ptr z = std::make_shared<Y>(alu);
+    Y::shared_ptr err = std::make_shared<Y>(alu);
 	auto irange = boost::irange(0,5);
 	y->data.resize( irange.size() );
 	z->data.resize( irange.size() );
@@ -205,7 +217,6 @@ BOOST_AUTO_TEST_CASE( test_Interval_datatype, * utf::tolerance(0.00001) )
 	BOOST_TEST( *z != *err );
 	BOOST_TEST( *err > *y );
 	BOOST_TEST( *y < *err );
-
 
 	auto ar0 = *y + *z;
 	for( auto i : irange )
@@ -217,10 +228,10 @@ BOOST_AUTO_TEST_CASE( test_Interval_datatype, * utf::tolerance(0.00001) )
 	for( auto i : irange )
 	{
 		BOOST_TEST( (*ar1)[i] == 0.0 );
-	}	
+    }
 
-	Y::shared_ptr aP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr bP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr aP = std::make_shared<Y>(alu);
+    Y::shared_ptr bP = std::make_shared<Y>(alu);
 	BOOST_TEST( operator!=( aP, bP ) );
 	BOOST_TEST( operator!=( aP, z ) );
 }
@@ -230,21 +241,24 @@ BOOST_AUTO_TEST_CASE( test_Ratio_datatype, * utf::tolerance(0.00001) )
 	using namespace AICore;
 	using namespace Core;
 
-	typedef AICore::RatioData<VectorOfFloats> Y;
+    ALU &alu = ALU::get();
 
-	BOOST_REQUIRE_EQUAL( Y::DataCategory, AICore::DataCategory::Quantative );
-	BOOST_REQUIRE_EQUAL( Y::DataType, AICore::DataType::Ratio );
-	BOOST_REQUIRE_NE( Y::DataCategory, AICore::DataCategory::Qualitive );
+    typedef AICore::RatioData<> Y;
 
-	Y a(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y b(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y a(alu);
+    Y b(alu);
+
+    BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Quantative);
+    BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Ratio);
+    BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Qualitive);
+
 	BOOST_REQUIRE( a == a );
 	// with no data set, y and z are equal with null data
 	BOOST_REQUIRE( a == b );
 
-	Y::shared_ptr y = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr z = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr err = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr y = std::make_shared<Y>(alu);
+    Y::shared_ptr z = std::make_shared<Y>(alu);
+    Y::shared_ptr err = std::make_shared<Y>(alu);
 	auto irange = boost::irange(0,5);
 	y->data.resize( irange.size() );
 	z->data.resize( irange.size() );
@@ -285,10 +299,10 @@ BOOST_AUTO_TEST_CASE( test_Ratio_datatype, * utf::tolerance(0.00001) )
 		if( i > 0 ) {
 			BOOST_TEST( (*ar3)[i] == 1.0 );
 		}
-	}	
+    }
 
-	Y::shared_ptr aP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
-	Y::shared_ptr bP = std::make_shared<Y>(Core::DefaultVectorALU<Core::VectorOfFloats>());
+    Y::shared_ptr aP = std::make_shared<Y>(alu);
+    Y::shared_ptr bP = std::make_shared<Y>(alu);
 	BOOST_TEST( operator!=( aP, bP ) );
 	BOOST_TEST( operator!=( aP, z ) );
 }

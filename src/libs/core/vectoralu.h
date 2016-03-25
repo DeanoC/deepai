@@ -2,44 +2,58 @@
 
 namespace Core {
 
-	enum class VectorALU : uint8_t {
+    enum class VectorALUBackend : uint8_t {
 		BASIC_CPP
 	};
 
-	// TODO typedef std::vector<half> VectorOfHalfs;
-	typedef std::vector<float> VectorOfFloats;
-	typedef std::vector<double> VectorOfDoubles;
 
-//	#define ArrayOfHalfs(Count) std::array<half,(Count)>
-	#define ArrayOfFloats(Count) std::array<float,(Count)>
-	#define ArrayOfDoubles(Count) std::array<double,(Count)>
+    template<VectorALUBackend backend>
+    struct VectorALU {
+        // these are never used, consider this the 'interface' which each ALU backend should support at a minimum
 
-	template< VectorALU ALU,typename type >
-	struct VectorProcessingBackend {
-
-		// these are never used, consider this the 'interface' which each ALU backend should support at a minimum
-		typedef std::pair< typename type::value_type, typename type::value_type> ResultPair;		
-
-		void add( const type& a, const type& b, type& out );
-		void sub( const type& a, const type& b, type& out );
-		void mul( const type& a, const type& b, type& out );
-		void div( const type& a, const type& b, type& out );
-
-		ResultPair minMaxOf( const type& input );
-
-		bool compareEquals( const type& a, const type& b );
-		bool compareNotEquals( const type& a, const type& b );
-		bool compareAllGreater( const type& a, const type& b );
-		bool compareAllLess( const type& a, const type& b );
+        template<typename type> using VectorOf = std::vector<type>;
+        typedef VectorOf<float> VectorOfFloats;
+        typedef VectorOf<double> VectorOfDoubles;
+        template<typename type> using ResultPair = std::pair<type, type>;
 
 
-		void normaliseData0to1( const type& in, type& out );
-		void normaliseDataNeg1toPos1( const type& in, type& out );
-	};
+        template<typename type>
+        void add(const type &a, const type &b, type &out);
 
-	template< typename T>
-	inline VectorProcessingBackend<VectorALU::BASIC_CPP,T>& DefaultVectorALU() {
-		static VectorProcessingBackend<VectorALU::BASIC_CPP,T> alu;
-		return alu;
-	}
+        template<typename type>
+        void sub(const type &a, const type &b, type &out);
+
+        template<typename type>
+        void mul(const type &a, const type &b, type &out);
+
+        template<typename type>
+        void div(const type &a, const type &b, type &out);
+
+        template<typename type>
+        ResultPair<type> minMaxOf(const type &input);
+
+        template<typename type>
+        bool compareEquals(const type &a, const type &b);
+
+        template<typename type>
+        bool compareNotEquals(const type &a, const type &b);
+
+        template<typename type>
+        bool compareAllGreater(const type &a, const type &b);
+
+        template<typename type>
+        bool compareAllLess(const type &a, const type &b);
+
+
+        template<typename type>
+        void normaliseData0to1(const type &in, type &out);
+
+        template<typename type>
+        void normaliseDataNeg1toPos1(const type &in, type &out);
+
+//		static bool init();
+//		static VectorALU<backend> get();
+    protected:
+        VectorALU<backend>();
+    };
 }

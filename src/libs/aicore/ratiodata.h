@@ -4,55 +4,25 @@
 #include "core/vectoralu_basicc.h"
 
 namespace AICore {
-	template< typename V, typename ALU> struct RatioData;
-	
-	#define RATIO_SHARED_FUNC(T,ALU) 							\
-			typedef DataTypeBaseImpl<T,ALU> super;				\
-			using typename super::container_type;				\
-			using typename super::value_type;					\
-			using typename super::alu_type;						\
-			using super::data;									\
-			using super::processor;								\
-			enum { DataCategory = DataCategory::Quantative }; 	\
-			enum { DataType = DataType::Ratio }; 																								
 
-	// general case where data type must provide normalisation step
-	template< typename T, typename ALU >
-	struct DataTypeBase<struct RatioData<T,ALU>,ALU> :  protected DataTypeBaseImpl<T,ALU> {
-		RATIO_SHARED_FUNC(T,ALU);
-
-		explicit DataTypeBase(ALU& _alu) : super(_alu) {}
-
-	};
-
-	// specialize the common case of arrays of floats
-	template<typename ALU>
-	struct DataTypeBase<struct RatioData<Core::VectorOfFloats,ALU>,ALU> :  protected DataTypeBaseImpl<Core::VectorOfFloats,ALU> {
-		RATIO_SHARED_FUNC(Core::VectorOfFloats,ALU);
-
-		explicit DataTypeBase(ALU& _alu) : super(_alu) {}
-
-	};
-
-
-	#undef RATIO_SHARED_FUNC
-
-	template< typename V, typename ALU = Core::VectorProcessingBackend<Core::VectorALU::BASIC_CPP,V> >
-	struct RatioData : protected DataTypeBase<RatioData<V,ALU>,ALU> {
-		typedef DataTypeBase<RatioData<V,ALU>,ALU>  super;			
+	template<typename V = float, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP> >
+	struct RatioData : public DataTypeBase<V, ALU> {
+		typedef DataTypeBase <V, ALU> super;
 		typedef RatioData<V,ALU> type_name;
-
 		using typename super::container_type;
 		using typename super::value_type;
-		using super::DataCategory;
-		using super::DataType;
 		using super::data;
 		using super::processor;
 
 		typedef std::shared_ptr<type_name> shared_ptr;
 
 
-		explicit RatioData( ALU& _alu ) : super(_alu) {}
+		explicit RatioData(ALU &_alu) : super(DataType::Ratio, _alu) { }
+
+		void addData(const std::string &_data) override {
+			// must be numeric data incoming
+			data.push_back(boost::lexical_cast<V>(_data));
+		}
 
 		shared_ptr operator+( const type_name& b) const {
 			auto o = std::make_shared<type_name>(super::processor);
@@ -97,7 +67,7 @@ namespace AICore {
 
 		friend std::ostream& operator<<( std::ostream& out, const RatioData<V,ALU>& a)	
 		{
-			out << a.DataType;
+			out << a.type;
 		//	out << a.data;
 			return out;
 		}

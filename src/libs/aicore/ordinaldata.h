@@ -1,35 +1,26 @@
 #pragma once
 
 namespace AICore {
-	template < typename E, typename ALU> struct OrdinalData;
+    template<typename V = float, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>>
+    struct OrdinalData : public DataTypeBase<V, ALU> {
+        typedef DataTypeBase <V, ALU> super;
+        typedef OrdinalData<V, ALU> type_name;
 
-	template< typename E, typename ALU >
-	struct DataTypeBase<struct OrdinalData<E,ALU>,ALU>  :  protected DataTypeBaseImpl<E,ALU> {
-		typedef DataTypeBaseImpl<E,ALU> super;
 		using typename super::container_type;
 		using typename super::value_type;
 		using super::data;
 		using super::processor;
+        using super::type;
+        using super::category;
 
-		explicit DataTypeBase(ALU& _alu) : super(_alu) {}
+        std::vector<std::string> categories;
 
-		enum { DataCategory = DataCategory::Qualitive };
-		enum { DataType = DataType::Ordinal };	
-	};
+        explicit OrdinalData(ALU &_alu) : super(DataType::Ordinal, _alu) { }
 
-	template < typename E, typename ALU = Core::VectorProcessingBackend<Core::VectorALU::BASIC_CPP,E>>
-	struct OrdinalData :  protected DataTypeBase<OrdinalData<E,ALU>,ALU>{
-		typedef DataTypeBase<OrdinalData<E,ALU>,ALU>  super;
-		typedef OrdinalData<E,ALU> type_name;
-
-		using typename super::container_type;
-		using typename super::value_type;
-		using super::DataCategory;
-		using super::DataType;
-		using super::data;
-		using super::processor;
-
-		explicit OrdinalData( ALU& _alu ) : super(_alu) {}
+        void addData(const std::string &_data) override {
+            // must be a string category name incoming
+            categories.push_back(_data);
+        }
 
 		typedef std::shared_ptr<type_name> shared_ptr;
 
@@ -55,7 +46,7 @@ namespace AICore {
 		}	
 		friend std::ostream& operator<<( std::ostream& out, const type_name& a)
  		{
- 		//	out << a.type;
+            out << a.type;
 			//	out << a.data;
 			return out;
 		}

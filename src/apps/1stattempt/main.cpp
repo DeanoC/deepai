@@ -3,9 +3,9 @@
 #include <iostream>
 #include <boost/range/irange.hpp>
 #include <boost/filesystem.hpp>
+#include <aicore/featurevector.h>
 #include "boost/program_options.hpp"
 
-#include "aicore/basetypes.h"
 #include "aicore/datamodel.h"
 
 #include "readcvs.h"
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    fileSize = (size_t) dataifs.tellg();
+    // Stream from start of file
     dataifs.seekg(0, std::ios::beg);
 
     const auto csv = Util::readCSV(dataifs);
@@ -98,6 +98,9 @@ int main(int argc, char **argv)
             ++i;
         }
     }
+
+    AICore::FeatureVector<float> fv(model->sizeOfFeatures(), model->dimensionOfFeatures());
+    model->fill(fv);
 
 
 	return 0;	

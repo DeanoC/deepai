@@ -8,7 +8,7 @@ file( GLOB header_files *.h *.inl *.hpp *.hxx)
 
 list( APPEND src_files ${cpp_src_files} ${c_src_files} )
 
-add_library(${LIB_NAME} ${src_files} ${header_files} datamodel.cpp)
+add_library(${LIB_NAME} ${src_files} ${header_files})
 target_link_libraries( ${LIB_NAME} ${targ_link_libs} )
 
 # make a nice hierachy

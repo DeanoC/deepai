@@ -1,12 +1,15 @@
 #include "core/core.h"
-#include "aicore/aicore.h"
-#include <iostream>
+#include "core/random.h"
 #include <boost/range/irange.hpp>
 #include <boost/filesystem.hpp>
+
+#include "aicore/aicore.h"
 #include <aicore/featurevector.h>
 #include "boost/program_options.hpp"
 
 #include "aicore/datamodel.h"
+#include "aicore/featurespace.h"
+#include "aialgorithms/kmeans.h"
 
 #include "readcvs.h"
 
@@ -18,6 +21,8 @@ int main(int argc, char **argv)
 
     namespace fs = boost::filesystem;
     namespace po = boost::program_options;
+
+    Random::seed(); // default time(0) seed for now
 
     // Declare the supported options.
     po::options_description desc("Allowed options");
@@ -102,8 +107,19 @@ int main(int argc, char **argv)
     // for unsupervised learning (like k-means) ignore output
     model->ignoreUsageType(DataTypeUsage::Output);
 
-    AICore::FeatureVector<float> fv(model->sizeOfFeatures(), model->dimensionOfFeatures());
-    model->fill(fv);
+    auto fv = std::make_shared<AICore::FeatureVector<float>>(model->dimensionOfFeatures(), model->sizeOfFeatures());
+    model->fill(std::static_pointer_cast<FeatureVectorBase>(fv));
+
+    FeatureSpace<float> space(model->dimensionOfFeatures(), model->sizeOfFeatures());
+
+    AIAlgorithms::KMeans<float> kmeans(3, std::static_pointer_cast<FeatureVectorBase>(fv));
+
+    bool iterating = true;
+    while (iterating) {
+        iterating = kmeans.iterate();
+    }
+
+    std::cout << kmeans;
 
 
 	return 0;	

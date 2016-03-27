@@ -129,7 +129,7 @@ namespace AICore {
                 dataPtr->addCategory(itr->GetString());
             }
         } else {
-            // qualative features must have them for normalisation
+            // qualitative features must have them for normalisation
             if (dataPtr->category == DataCategory::Qualitive) throw;
         }
     }
@@ -152,7 +152,7 @@ namespace AICore {
     }
 
 
-    void DataModel::fill(FeatureVectorBase &base) {
+    void DataModel::fill(FeatureVectorBase::shared_ptr base) {
         using namespace Core;
         using namespace AICore;
 
@@ -171,9 +171,9 @@ namespace AICore {
                             for (int i = 0; i < fv->numCategories(); ++i) {
                                 for (auto &&item : q->data) {
                                     if (item == q->categories[i]) {
-                                        base.setAt(currentIndex++, 1.0);
+                                        base->setAt(currentIndex++, 1.0);
                                     } else {
-                                        base.setAt(currentIndex++, -1.0);
+                                        base->setAt(currentIndex++, -1.0);
                                     }
                                 }
 
@@ -193,13 +193,13 @@ namespace AICore {
                     switch (fv->normalisationMethod) {
                         case DataTypeNormalisation::scaling0to1: {
                             for (auto &&item : q->data) {
-                                base.setAt(currentIndex++, (item - rangeLow) / rangeWidth);
+                                base->setAt(currentIndex++, (item - rangeLow) / rangeWidth);
                             }
                         }
                             break;
                         case DataTypeNormalisation::scalingNeg1ToPos1: {
                             for (auto &&item : q->data) {
-                                base.setAt(currentIndex++, ((item - rangeLow) / rangeWidth) * 2.0 - 1.0);
+                                base->setAt(currentIndex++, ((item - rangeLow) / rangeWidth) * 2.0 - 1.0);
                             }
                         }
                             break;

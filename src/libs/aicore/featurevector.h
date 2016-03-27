@@ -12,16 +12,18 @@ namespace AICore {
     struct FeatureVectorBase {
         using shared_ptr = std::shared_ptr<FeatureVectorBase>;
 
-        FeatureVectorBase() { }
+        FeatureVectorBase(const size_t _dims, const size_t _count) :
+                count(_count), dimensions(_dims) { }
         virtual ~FeatureVectorBase() { };
-
-        virtual size_t size() = 0;
 
         virtual void reserve(const size_t size) = 0;
 
         virtual void push_back(const double value) = 0;
 
         virtual void setAt(const size_t index, const double value) = 0;
+
+        const size_t count;
+        const size_t dimensions;
 
     };
 
@@ -31,8 +33,9 @@ namespace AICore {
         using Vector = typename ALU::template VectorOf<REAL>;
         using shared_ptr = std::shared_ptr<FeatureVector<REAL, ALU>>;
 
-        FeatureVector(const unsigned int _count, const unsigned int _dimensions) {
-            vector.resize(_count * _dimensions);
+        FeatureVector(const size_t _dims, const size_t _count) :
+                FeatureVectorBase(_dims, _count) {
+            vector.resize(_count * _dims);
         }
 
         virtual ~FeatureVector() override { };
@@ -41,8 +44,16 @@ namespace AICore {
             return vector;
         }
 
-        virtual size_t size() override {
-            return vector.size();
+        Vector &get() {
+            return vector;
+        }
+
+        const REAL *data(size_t index = 0) const {
+            return get().data() + index;
+        }
+
+        REAL *data(size_t index = 0) {
+            return get().data() + index;
         }
 
         virtual void reserve(const size_t size) override {
@@ -56,7 +67,6 @@ namespace AICore {
         virtual void setAt(const size_t index, const double value) override {
             vector.at(index) = static_cast<REAL>(value);
         }
-
 
         bool operator==(const FeatureVector<REAL, ALU> &b) {
             return (vector == b.vector);

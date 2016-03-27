@@ -37,7 +37,7 @@ namespace AICore {
 
         void ignoreUsageType(DataTypeUsage usage) { ignoreArray[(int) usage] = 1; }
 
-        void fill(FeatureVectorBase &base);
+        void fill(FeatureVectorBase::shared_ptr base);
 
     protected:
         FeatureContainer features;

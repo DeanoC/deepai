@@ -18,38 +18,49 @@ namespace Core {
 
 
         template<typename type>
-        void add(const type &a, const type &b, type &out) { };
+        void add(const VectorOf<type> &a, const VectorOf<type> &b, VectorOf<type> &out) { };
 
         template<typename type>
-        void sub(const type &a, const type &b, type &out) { };
+        void sub(const VectorOf<type> &a, const VectorOf<type> &b, VectorOf<type> &out) { };
 
         template<typename type>
-        void mul(const type &a, const type &b, type &out) { };
+        void mul(const VectorOf<type> &a, const VectorOf<type> &b, VectorOf<type> &out) { };
 
         template<typename type>
-        void div(const type &a, const type &b, type &out) { };
+        void div(const VectorOf<type> &a, const VectorOf<type> &b, VectorOf<type> &out) { };
 
         template<typename type>
-        ResultPair<type> minMaxOf(const type &input) { };
+        void horizSum(const VectorOf<type> &a, VectorOf<type> &out) { };
 
         template<typename type>
-        bool compareEquals(const type &a, const type &b) { };
+        type horizSum(const VectorOf<type> &a) { };
 
         template<typename type>
-        bool compareNotEquals(const type &a, const type &b) { };
+        void abs(const VectorOf<type> &a, VectorOf<type> &out) { };
 
         template<typename type>
-        bool compareAllGreater(const type &a, const type &b) { };
+        void set(const type value, VectorOf<type> &out) { }
 
         template<typename type>
-        bool compareAllLess(const type &a, const type &b) { };
-
-
-        template<typename type>
-        void normaliseData0to1(const type &in, type &out) { };
+        ResultPair<type> minMaxOf(const VectorOf<type> &input) { };
 
         template<typename type>
-        void normaliseDataNeg1toPos1(const type &in, type &out) { };
+        bool compareEquals(const VectorOf<type> &a, const VectorOf<type> &b) { };
+
+        template<typename type>
+        bool compareNotEquals(const VectorOf<type> &a, const VectorOf<type> &b) { };
+
+        template<typename type>
+        bool compareAllGreater(const VectorOf<type> &a, const VectorOf<type> &b) { };
+
+        template<typename type>
+        bool compareAllLess(const VectorOf<type> &a, const VectorOf<type> &b) { };
+
+        template<typename type>
+        void gather(const type *data, const unsigned int num, const size_t stride, VectorOf<type> &out) { }
+
+        template<typename type>
+        void scatter(const VectorOf<type> &in, const unsigned int num, const size_t stride, type *data) { }
 
 //		static bool init();
 //		static VectorALU<backend> get();

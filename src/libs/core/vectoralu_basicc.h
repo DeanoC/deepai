@@ -10,7 +10,7 @@ namespace Core {
     template<>
     struct VectorALU<VectorALUBackend::BASIC_CPP> {
 
-        template<typename type> using ResultPair = std::pair<type, type>;
+        template<typename type> using Range = std::pair<type, type>;
         template<typename type> using VectorOf = std::vector<type>;
 
         typedef VectorOf<float> VectorOfFloats;
@@ -169,7 +169,7 @@ namespace Core {
 
 
         template<typename type>
-        ResultPair<type> minMaxOf(const VectorOf<type> &in) const {
+        Range<type> minMaxOf(const VectorOf<type> &in) const {
 			// default to min and max of the type held in the container
             type mini = std::numeric_limits<type>::max();
             type maxi = std::numeric_limits<type>::min();
@@ -179,7 +179,7 @@ namespace Core {
 				maxi = std::max( it, maxi );
 			}
 
-            return ResultPair<type>(mini, maxi);
+            return Range<type>(mini, maxi);
 		}
 
         template<typename type>

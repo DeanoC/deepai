@@ -33,9 +33,18 @@ namespace AICore {
         using Vector = typename ALU::template VectorOf<REAL>;
         using shared_ptr = std::shared_ptr<FeatureVector<REAL, ALU>>;
 
-        FeatureVector(const size_t _dims, const size_t _count) :
+        explicit FeatureVector(const size_t _dims, const size_t _count) :
                 FeatureVectorBase(_dims, _count) {
             vector.resize(_count * _dims);
+        }
+
+        explicit FeatureVector(const size_t _dims, const size_t _count, const REAL *_data) :
+                FeatureVectorBase(_dims, _count) {
+            vector.resize(_count * _dims);
+
+            for (int j = 0; j < _count * _dims; ++j) {
+                vector[j] = _data[j];
+            }
         }
 
         virtual ~FeatureVector() override { };
@@ -56,11 +65,11 @@ namespace AICore {
             return get().data() + index;
         }
 
-        virtual void reserve(const size_t size) override {
+        void reserve(const size_t size) override {
             vector.reserve(size);
         }
 
-        virtual void push_back(const double value) override {
+        void push_back(const double value) override {
             vector.push_back(static_cast<REAL>(value));
         }
 

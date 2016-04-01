@@ -14,7 +14,7 @@ namespace Core {
         template<typename type> using VectorOf = std::vector<type>;
         typedef VectorOf<float> VectorOfFloats;
         typedef VectorOf<double> VectorOfDoubles;
-        template<typename type> using ResultPair = std::pair<type, type>;
+        template<typename type> using Range = std::pair<type, type>;
 
 
         template<typename type>
@@ -42,7 +42,7 @@ namespace Core {
         void set(const type value, VectorOf<type> &out) { }
 
         template<typename type>
-        ResultPair<type> minMaxOf(const VectorOf<type> &input) { };
+        Range<type> minMaxOf(const VectorOf<type> &input) { };
 
         template<typename type>
         bool compareEquals(const VectorOf<type> &a, const VectorOf<type> &b) { };

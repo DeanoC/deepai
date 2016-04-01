@@ -4,11 +4,11 @@
 #include "core/vectoralu.h"
 #include "core/vectoralu_basicc.h"
 #include "aicore/basetypes.h"
+#include "aicore/featurevector.h"
 #include "rapidjson/document.h"
 
 namespace AICore {
 
-    struct FeatureVectorBase;
 
     class DataModel {
     public:

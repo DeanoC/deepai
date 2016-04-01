@@ -11,6 +11,10 @@
 
 namespace AIAlgorithms {
 
+    /*
+     * KMeans sements the data into clusters, K clusters are output
+     * each cluster has a centroid and a list of observation that are in it
+     */
     template<typename REAL, typename ALU>
     class Cluster {
     public:
@@ -26,11 +30,17 @@ namespace AIAlgorithms {
         std::set<ObservationIndex> observers;
     };
 
+    /*
+     * KMeans in a unsupervised classifier. Generate K class from N dimensional data
+     */
     template<typename REAL, typename ALU = Core::VectorALU<Core::VectorALUBackend::BASIC_CPP>>
     class KMeans {
     public:
-        typedef AICore::FeatureVector<REAL, ALU> FVector;
-        typedef AICore::FeatureSpace<REAL, ALU> FSpace;
+        typedef REAL value_type;
+        typedef ALU alu_type;
+
+        typedef AICore::FeatureVector<value_type, alu_type> FVector;
+        typedef AICore::FeatureSpace<value_type, alu_type> FSpace;
 
         KMeans(const size_t _k, const AICore::FeatureVectorBase::shared_ptr observations) :
                 k(_k),

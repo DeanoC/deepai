@@ -90,43 +90,15 @@ BOOST_AUTO_TEST_CASE( test_Nominal_datatype, * utf::tolerance(0.00001) )
 
     ALU &alu = ALU::get();
 
-    typedef AICore::NominalData<> Y;
+    typedef AICore::NominalData Y;
 
-    Y a(alu);
-    Y b(alu);
+    Y a;
+    Y b;
 
     BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Qualitive);
     BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Nominal);
     BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Quantative);
 
-	BOOST_REQUIRE( a == a );
-	// with no data set, y and z are equal with null data
-	BOOST_REQUIRE( a == b );
-
-    Y::shared_ptr y = std::make_shared<Y>(alu);
-    Y::shared_ptr z = std::make_shared<Y>(alu);
-    Y::shared_ptr err = std::make_shared<Y>(alu);
-	auto irange = boost::irange(0,5);
-	y->data.resize( irange.size() );
-	z->data.resize( irange.size() );
-	err->data.resize( irange.size() );
-	for( auto i : irange )
-	{
-		(*y)[i] = i;
-		(*z)[i] = i;
-		(*err)[i] = 42;
-	}
-
-	BOOST_TEST( *y == *z );
-	BOOST_TEST( *y != *err );
-	BOOST_TEST( *z != *err );
-	err->data.resize( 0 );
-	BOOST_TEST( *z != *err );
-
-    Y::shared_ptr aP = std::make_shared<Y>(alu);
-    Y::shared_ptr bP = std::make_shared<Y>(alu);
-	BOOST_TEST( operator!=( aP, bP ) );
-	BOOST_TEST( operator!=( aP, z ) );
 }
 
 BOOST_AUTO_TEST_CASE( test_Ordinal_datatype, * utf::tolerance(0.00001) )
@@ -136,44 +108,14 @@ BOOST_AUTO_TEST_CASE( test_Ordinal_datatype, * utf::tolerance(0.00001) )
 
     ALU &alu = ALU::get();
 
-    typedef AICore::OrdinalData<> Y;
+    typedef AICore::OrdinalData Y;
 
-    Y a(alu);
-    Y b(alu);
+    Y a;
+    Y b;
 
     BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Qualitive);
     BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Ordinal);
     BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Quantative);
-
-	BOOST_REQUIRE( a == a );
-	// with no data set, y and z are equal with null data
-	BOOST_REQUIRE( a == b );
-
-    Y::shared_ptr y = std::make_shared<Y>(alu);
-    Y::shared_ptr z = std::make_shared<Y>(alu);
-    Y::shared_ptr err = std::make_shared<Y>(alu);
-	auto irange = boost::irange(0,5);
-	y->data.resize( irange.size() );
-	z->data.resize( irange.size() );
-	err->data.resize( irange.size() );
-	for( auto i : irange )
-	{
-		(*y)[i] = i;
-		(*z)[i] = i;
-		(*err)[i] = 42;
-	}
-	BOOST_TEST( *y == *z );
-	BOOST_TEST( *y != *err );
-	BOOST_TEST( *z != *err );
-	err->data.resize( 0 );
-	BOOST_TEST( *z != *err );
-	BOOST_TEST( *err > *y );
-	BOOST_TEST( *y < *err );
-
-    Y::shared_ptr aP = std::make_shared<Y>(alu);
-    Y::shared_ptr bP = std::make_shared<Y>(alu);
-	BOOST_TEST( operator!=( aP, bP ) );
-	BOOST_TEST( operator!=( aP, z ) );
 }
 
 BOOST_AUTO_TEST_CASE( test_Interval_datatype, * utf::tolerance(0.00001) )
@@ -183,57 +125,15 @@ BOOST_AUTO_TEST_CASE( test_Interval_datatype, * utf::tolerance(0.00001) )
 
     ALU &alu = ALU::get();
 
-    typedef AICore::IntervalData<> Y;
+    typedef AICore::IntervalData Y;
 
-    Y a(alu);
-    Y b(alu);
+    Y a;
+    Y b;
 
     BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Quantative);
     BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Interval);
     BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Qualitive);
 
-	BOOST_REQUIRE( a == a );
-	// with no data set, y and z are equal with null data
-	BOOST_REQUIRE( a == b );
-
-    Y::shared_ptr y = std::make_shared<Y>(alu);
-    Y::shared_ptr z = std::make_shared<Y>(alu);
-    Y::shared_ptr err = std::make_shared<Y>(alu);
-	auto irange = boost::irange(0,5);
-	y->data.resize( irange.size() );
-	z->data.resize( irange.size() );
-	err->data.resize( irange.size() );
-	for( auto i : irange )
-	{
-		(*y)[i] = i;
-		(*z)[i] = i;
-		(*err)[i] = 42;
-	}
-
-	BOOST_TEST( *y == *z );
-	BOOST_TEST( *y != *err );
-	BOOST_TEST( *z != *err );
-	err->data.resize( 0 );
-	BOOST_TEST( *z != *err );
-	BOOST_TEST( *err > *y );
-	BOOST_TEST( *y < *err );
-
-	auto ar0 = *y + *z;
-	for( auto i : irange )
-	{	
-		BOOST_TEST( (*ar0)[i] == i+i );
-	}	
-
-	auto ar1 = *y - *z;	
-	for( auto i : irange )
-	{
-		BOOST_TEST( (*ar1)[i] == 0.0 );
-    }
-
-    Y::shared_ptr aP = std::make_shared<Y>(alu);
-    Y::shared_ptr bP = std::make_shared<Y>(alu);
-	BOOST_TEST( operator!=( aP, bP ) );
-	BOOST_TEST( operator!=( aP, z ) );
 }
 
 BOOST_AUTO_TEST_CASE( test_Ratio_datatype, * utf::tolerance(0.00001) )
@@ -243,66 +143,13 @@ BOOST_AUTO_TEST_CASE( test_Ratio_datatype, * utf::tolerance(0.00001) )
 
     ALU &alu = ALU::get();
 
-    typedef AICore::RatioData<> Y;
+    typedef AICore::RatioData Y;
 
-    Y a(alu);
-    Y b(alu);
+    Y a;
+    Y b;
 
     BOOST_REQUIRE_EQUAL(a.category, AICore::DataCategory::Quantative);
     BOOST_REQUIRE_EQUAL(a.type, AICore::DataType::Ratio);
     BOOST_REQUIRE_NE(a.category, AICore::DataCategory::Qualitive);
 
-	BOOST_REQUIRE( a == a );
-	// with no data set, y and z are equal with null data
-	BOOST_REQUIRE( a == b );
-
-    Y::shared_ptr y = std::make_shared<Y>(alu);
-    Y::shared_ptr z = std::make_shared<Y>(alu);
-    Y::shared_ptr err = std::make_shared<Y>(alu);
-	auto irange = boost::irange(0,5);
-	y->data.resize( irange.size() );
-	z->data.resize( irange.size() );
-	err->data.resize( irange.size() );
-	for( auto i : irange )
-	{
-		(*y)[i] = i;
-		(*z)[i] = i;
-		(*err)[i] = 42;
-	}
-	BOOST_TEST( *y == *z );
-	BOOST_TEST( *y != *err );
-	BOOST_TEST( *z != *err );
-	err->data.resize( 0 );
-	BOOST_TEST( *z != *err );
-	BOOST_TEST( *err > *y );
-	BOOST_TEST( *y < *err );
-
-	auto ar0 = *y + *z;
-	for( auto i : irange )
-	{	
-		BOOST_TEST( (*ar0)[i] == i+i );
-	}	
-
-	auto ar1 = *y - *z;	
-	for( auto i : irange )
-	{
-		BOOST_TEST( (*ar1)[i] == 0.0 );
-	}	
-	auto ar2 = *y * *z;
-	for( auto i : irange )
-	{
-		BOOST_TEST( (*ar2)[i] == i*i );
-	}	
-	auto ar3 = *y / *z;
-	for( auto i : irange )
-	{
-		if( i > 0 ) {
-			BOOST_TEST( (*ar3)[i] == 1.0 );
-		}
-    }
-
-    Y::shared_ptr aP = std::make_shared<Y>(alu);
-    Y::shared_ptr bP = std::make_shared<Y>(alu);
-	BOOST_TEST( operator!=( aP, bP ) );
-	BOOST_TEST( operator!=( aP, z ) );
 }
